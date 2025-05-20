@@ -1,27 +1,37 @@
 # TIDAL Playlist Synchronizer
 
-A Python-based CLI tool to synchronize songs from one TIDAL playlist to another.  
+A command-line tool written in Python that lets you synchronize songs from one TIDAL playlist to another. Ideal for maintaining shared playlists, backups, or syncing between multiple accounts.
+
+---
 
 ## 🚀 Features
 
 - 🔐 OAuth login using the official TIDAL API
-- 🎵 Manual input of source and target playlist IDs
+- 🎵 Manual input for source and target playlist IDs
+- ✅ UUID format validation for IDs
+- ⚠️ Handles empty source playlists gracefully
 - 🔁 Detects and adds only missing songs
-- 📋 Supports playlists with up to over 1000 tracks
-- 🧾 Logging: Saves added tracks to `sync_log.txt`
-- 🔄 Repeat syncs in one session without restarting the script
+- 📋 Supports playlists with over 1000 tracks
+- 🧾 Daily logging inside `logs/YYYY-MM-DD_sync.txt`
+- 🎨 Color-coded terminal output for better clarity
+- 🔢 Summary of added tracks after each sync
+- 🔄 Repeat syncs without restarting the script
+
+---
 
 ## 📦 Requirements
 
 - Python 3.8+
-- `tidalapi` Python package
 - A valid TIDAL account (HiFi or HiFi Plus)
+- `tidalapi`, `colorama` Python packages
+
+---
 
 ## 🛠 Installation
 
 1. Clone this repository:
     ```bash
-    git clone https://github.com/yourusername/tidalsync.git
+    git clone https://github.com/jannme310103/tidalsync.git
     cd tidalsync
     ```
 
@@ -34,6 +44,15 @@ A Python-based CLI tool to synchronize songs from one TIDAL playlist to another.
     ```bash
     python tidalsync.py
     ```
+---
+
+## 📁 Logs
+
+Added tracks are saved to:
+```bash
+logs/YYYY-MM-DD_sync.txt
+```
+---
 
 ## 💡 Example Usage
 
@@ -49,15 +68,16 @@ Enter the TARGET playlist ID: xyz456...
 Loaded 248 tracks from source playlist: My Daily Mix
 Loaded 215 tracks from target playlist: Shared Mix
 
-Successfully added the following tracks:
-Artist1 - Song1
-Artist2 - Song2
+Added 5 new track(s) to 'Shared Mix':
+✓ Artist1 - Song1
+✓ Artist2 - Song2
+...
 
-Do you want to sync another playlist? (y/n):
+Do you want to sync another playlist? (y/n): n
+Exiting...
 ```
-
-All added tracks are logged with timestamps in `sync_log.txt`.
+---
 
 ## 📝 License
 
-MIT – free to use, modify, and share.
+MIT – free to use, modify, and distribute.
