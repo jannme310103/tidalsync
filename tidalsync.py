@@ -2,25 +2,25 @@ import tidalapi
 import datetime
 import os
 import re
+import time
 from colorama import init, Fore, Style
+from typing import List
+from jinja2 import Template
 
 init(autoreset=True)
 
-
 def welcome():
-    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer ===\n")
+    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer v1.2.0 ===\n")
     authenticate()
-
 
 def authenticate():
     print("Logging in...")
     session = tidalapi.Session()
     session.login_oauth_simple()
-
     if session.check_login():
         print(Fore.GREEN + "Login successful!\n")
         while True:
-            prompt_playlist_ids(session)
+            run_sync(session)
             choice = input("\nDo you want to sync another playlist? (y/n): ").lower()
             if choice != 'y':
                 print("Exiting...")
@@ -29,89 +29,109 @@ def authenticate():
         print(Fore.RED + "Login failed. Please try again.\n")
         authenticate()
 
+def run_sync(session):
+    source_playlist = select_playlist_by_name(session, "SOURCE")
+    target_playlist = select_playlist_by_name(session, "TARGET")
 
-def prompt_playlist_ids(session):
-    source_playlist_id = input("Enter the SOURCE playlist ID: ").strip()
-    target_playlist_id = input("Enter the TARGET playlist ID: ").strip()
+    dry_run = input("Enable Dry-Run mode? (y/n): ").strip().lower() == 'y'
+    mirror_mode = input("Enable Mirror Mode (remove missing songs)? (y/n): ").strip().lower() == 'y'
 
-    if not is_valid_uuid(source_playlist_id) or not is_valid_uuid(target_playlist_id):
-        print(Fore.RED + "One or both playlist IDs are invalid. Please use the correct UUID format.")
-        return
+    sync_playlists(session, source_playlist, target_playlist, dry_run, mirror_mode)
 
-    sync_playlists(session, source_playlist_id, target_playlist_id)
+def select_playlist_by_name(session, label):
+    user_playlists = retry_request(lambda: session.user.playlists())
+    print(f"\nAvailable Playlists for {label}:")
+    for idx, pl in enumerate(user_playlists):
+        print(f"{idx + 1}. {pl.name} ({pl.num_tracks} Tracks)")
 
+    choice = int(input(f"\nSelect {label} playlist by number: ")) - 1
+    return user_playlists[choice]
 
-def is_valid_uuid(uuid):
-    return re.match(r'^[a-fA-F0-9-]{36}$', uuid) is not None
+def retry_request(func, retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            return func()
+        except Exception as e:
+            print(Fore.RED + f"Attempt {attempt + 1} failed: {e}")
+            time.sleep(delay)
+    raise Exception("Maximum retries reached.")
 
+def sync_playlists(session, source_playlist, target_playlist, dry_run=False, mirror_mode=False):
+    source_tracks = get_all_tracks(source_playlist)
+    target_tracks = get_all_tracks(target_playlist)
 
-def sync_playlists(session, source_id, target_id):
-    try:
-        source_playlist = session.playlist(source_id)
-        target_playlist = session.playlist(target_id)
-    except Exception as e:
-        print(Fore.RED + f"Error loading playlists: {e}")
-        return
+    print(f"\nLoaded {len(source_tracks)} tracks from source: {source_playlist.name}")
+    print(f"Loaded {len(target_tracks)} tracks from target: {target_playlist.name}")
 
-    source_count = source_playlist.num_tracks
-    target_count = target_playlist.num_tracks
+    source_ids = [t.id for t in source_tracks]
+    target_ids = [t.id for t in target_tracks]
 
-    if source_count == 0:
-        print(Fore.YELLOW + f"Source playlist '{source_playlist.name}' is empty. Nothing to sync.")
-        return
+    to_add = [t for t in source_tracks if t.id not in target_ids]
+    to_remove = [t for t in target_tracks if t.id not in source_ids] if mirror_mode else []
 
-    source_tracks = get_all_tracks(source_playlist, source_count)
-    target_tracks = get_all_tracks(target_playlist, target_count)
+    print(Fore.BLUE + f"\nTracks to ADD: {len(to_add)}")
+    print(Fore.MAGENTA + f"Tracks to REMOVE: {len(to_remove)}" if mirror_mode else "")
 
-    print(f"Loaded {source_count} tracks from source playlist: {source_playlist.name}")
-    print(f"Loaded {target_count} tracks from target playlist: {target_playlist.name}\n")
+    if to_add:
+        print(Fore.GREEN + "\nFolgende Songs werden hinzugefügt:")
+        for t in to_add:
+            print(f"- {t.name} - {t.artist.name}")
 
-    compare_playlists(source_tracks, target_tracks, target_playlist)
+    if not dry_run:
+        if to_add:
+            retry_request(lambda: target_playlist.add([t.id for t in to_add]))
+        if to_remove:
+            retry_request(lambda: target_playlist.remove([t.id for t in to_remove]))
 
+    log_sync(target_playlist.name, to_add, to_remove, dry_run)
+    create_report(target_playlist.name, to_add, to_remove, dry_run)
 
-def get_all_tracks(playlist, total_count):
-    if total_count == 0:
-        return []
-    recent = playlist.tracks(offset=max(0, total_count - 1000), limit=1000)
-    older = playlist.tracks(offset=0, limit=max(0, total_count - 1000))
-    return recent + older
+def get_all_tracks(playlist) -> List:
+    tracks = []
+    offset = 0
+    limit = 100
+    while True:
+        chunk = playlist.tracks(offset=offset, limit=limit)
+        if not chunk:
+            break
+        tracks.extend(chunk)
+        offset += limit
+    return tracks
 
-
-def compare_playlists(source_tracks, target_tracks, target_playlist):
-    source_ids = [track.id for track in source_tracks]
-    target_ids = [track.id for track in target_tracks]
-
-    missing_ids = [track_id for track_id in source_ids if track_id not in target_ids]
-
-    missing_songs = [
-        f"{track.name} - {track.artist.name}"
-        for track in source_tracks
-        if track.id in missing_ids
-    ]
-
-    add_to_playlist(missing_ids, missing_songs, target_playlist)
-
-
-def add_to_playlist(track_ids, songs, target_playlist):
-    if not track_ids:
-        print(Fore.YELLOW + "\nNo new tracks to add.\n")
-    else:
-        target_playlist.add(track_ids)
-        print(Fore.GREEN + f"\nAdded {len(songs)} new track(s) to '{target_playlist.name}':\n")
-        for song in songs:
-            print(Fore.GREEN + song)
-        log_sync(target_playlist.name, songs)
-
-
-def log_sync(playlist_name, songs):
+def log_sync(playlist_name, added, removed, dry_run):
     os.makedirs("logs", exist_ok=True)
-    log_filename = f"logs/{datetime.datetime.now().strftime('%Y-%m-%d')}_sync.txt"
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    filename = f"logs/{timestamp}_log.csv"
 
-    with open(log_filename, "a", encoding="utf-8") as log:
-        log.write(f"\n[{datetime.datetime.now()}] Synced to playlist: {playlist_name}\n")
-        for song in songs:
-            log.write(f"- {song}\n")
+    with open(filename, "w", encoding="utf-8") as log:
+        log.write("Timestamp,Playlist,Track,Artist,Action,DryRun\n")
+        for track in added:
+            log.write(f"{timestamp},{playlist_name},{track.name},{track.artist.name},added,{dry_run}\n")
+        for track in removed:
+            log.write(f"{timestamp},{playlist_name},{track.name},{track.artist.name},removed,{dry_run}\n")
 
+def create_report(playlist_name, added, removed, dry_run):
+    os.makedirs("logs", exist_ok=True)
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    filename = f"logs/{timestamp}_report.html"
+
+    html_template = """<html><head><title>Sync Report</title></head><body>
+    <h2>Playlist Sync Report - {{ playlist_name }}</h2>
+    <p><strong>Dry Run:</strong> {{ dry_run }}</p>
+    <h3>Added Tracks ({{ added | length }})</h3>
+    <ul>{% for t in added %}<li>{{ t.name }} - {{ t.artist.name }}</li>{% endfor %}</ul>
+    <h3>Removed Tracks ({{ removed | length }})</h3>
+    <ul>{% for t in removed %}<li>{{ t.name }} - {{ t.artist.name }}</li>{% endfor %}</ul>
+    </body></html>"""
+
+    template = Template(html_template)
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(template.render(
+            playlist_name=playlist_name,
+            added=added,
+            removed=removed,
+            dry_run=dry_run
+        ))
 
 if __name__ == "__main__":
     welcome()
