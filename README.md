@@ -1,28 +1,27 @@
 # TIDAL Playlist Synchronizer
 
-A Python-based tool to synchronize songs from one TIDAL playlist to another.  
-Useful for maintaining shared playlists, backups, or updating secondary accounts.
+A Python-based CLI tool to synchronize songs from one TIDAL playlist to another.  
 
-## 🔧 Features
+## 🚀 Features
 
-- Authenticates with your TIDAL account using OAuth
-- Prompts for a source and a target playlist ID
-- Compares the playlists and identifies missing tracks
-- Automatically adds missing songs from source to target
-- Handles playlists with over 1000 tracks by using pagination
+- 🔐 OAuth login using the official TIDAL API
+- 🎵 Manual input of source and target playlist IDs
+- 🔁 Detects and adds only missing songs
+- 📋 Supports playlists with up to over 1000 tracks
+- 🧾 Logging: Saves added tracks to `sync_log.txt`
+- 🔄 Repeat syncs in one session without restarting the script
 
-## 🚀 Getting Started
-
-### Prerequisites
+## 📦 Requirements
 
 - Python 3.8+
-- A TIDAL account (HiFi or HiFi Plus for API access)
+- `tidalapi` Python package
+- A valid TIDAL account (HiFi or HiFi Plus)
 
-### Installation
+## 🛠 Installation
 
-1. Clone the repository:
+1. Clone this repository:
     ```bash
-    git clone https://github.com/jannme310103/tidalsync.git
+    git clone https://github.com/yourusername/tidalsync.git
     cd tidalsync
     ```
 
@@ -31,34 +30,34 @@ Useful for maintaining shared playlists, backups, or updating secondary accounts
     pip install -r requirements.txt
     ```
 
-3. Run the tool:
+3. Run the script:
     ```bash
     python tidalsync.py
     ```
 
-4. When prompted, paste:
-    - The **source playlist ID** (songs will be copied from here)
-    - The **target playlist ID** (songs will be added here)
-
-## 🧪 Example
+## 💡 Example Usage
 
 ```bash
-Welcome to the Playlist Synchronizer
+=== TIDAL Playlist Synchronizer ===
 
-Logging in:
-Login successful
+Logging in...
+Login successful!
 
-Enter the src playlist ID: 1234abcd...
-Enter the trg playlist ID: 5678efgh...
+Enter the SOURCE playlist ID: abc123...
+Enter the TARGET playlist ID: xyz456...
 
-Loaded 248 songs from src playlist: My Daily Mix
-Loaded 215 songs from trg playlist: Shared Mix
+Loaded 248 tracks from source playlist: My Daily Mix
+Loaded 215 tracks from target playlist: Shared Mix
 
 Successfully added the following tracks:
 Artist1 - Song1
 Artist2 - Song2
+
+Do you want to sync another playlist? (y/n):
 ```
+
+All added tracks are logged with timestamps in `sync_log.txt`.
 
 ## 📝 License
 
-MIT – use it freely, modify it, and share it!
+MIT – free to use, modify, and share.
