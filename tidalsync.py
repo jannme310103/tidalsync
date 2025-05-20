@@ -18,8 +18,8 @@ def authenticate():
         authenticate()
 
 def prompt_playlist_ids(session):
-    source_playlist_id = input("Enter the source playlist ID: ").strip()
-    target_playlist_id = input("Enter the target playlist ID: ").strip()
+    source_playlist_id = input("Enter the src playlist ID: ").strip()
+    target_playlist_id = input("Enter the trg playlist ID: ").strip()
 
     sync_playlists(session, source_playlist_id, target_playlist_id)
 
@@ -42,8 +42,8 @@ def sync_playlists(session, source_id, target_id):
     all_source_tracks = source_tracks + source_missing
     all_target_tracks = target_tracks + target_missing
 
-    print(f"Loaded {source_count} tracks from source playlist: {source_playlist.name}")
-    print(f"Loaded {target_count} tracks from target playlist: {target_playlist.name}\n")
+    print(f"Loaded {source_count} tracks from src playlist: {source_playlist.name}")
+    print(f"Loaded {target_count} tracks from trg playlist: {target_playlist.name}\n")
 
     compare_playlists(all_source_tracks, all_target_tracks, target_playlist)
 
