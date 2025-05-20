@@ -48,11 +48,11 @@ Welcome to the Playlist Synchronizer
 Logging in:
 Login successful
 
-Enter the source playlist ID: 1234abcd...
-Enter the target playlist ID: 5678efgh...
+Enter the src playlist ID: 1234abcd...
+Enter the trg playlist ID: 5678efgh...
 
-Loaded 248 songs from source playlist: My Daily Mix
-Loaded 215 songs from target playlist: Shared Mix
+Loaded 248 songs from src playlist: My Daily Mix
+Loaded 215 songs from trg playlist: Shared Mix
 
 Successfully added the following tracks:
 Artist1 - Song1
