@@ -42,6 +42,7 @@ Useful for maintaining shared playlists, backups, or updating secondary accounts
 
 ## 🧪 Example
 
+```bash
 Welcome to the Playlist Synchronizer
 
 Logging in:
@@ -56,7 +57,7 @@ Loaded 215 songs from target playlist: Shared Mix
 Successfully added the following tracks:
 Artist1 - Song1
 Artist2 - Song2
-
+```
 
 ## 📝 License
 
