@@ -1,83 +1,89 @@
 # TIDAL Playlist Synchronizer
 
-A command-line tool written in Python that lets you synchronize songs from one TIDAL playlist to another. Ideal for maintaining shared playlists, backups, or syncing between multiple accounts.
+A command-line tool written in Python that lets you synchronize songs from one TIDAL playlist to another
 
 ---
 
 ## 🚀 Features
 
-- 🔐 OAuth login using the official TIDAL API
-- 🎵 Manual input for source and target playlist IDs
-- ✅ UUID format validation for IDs
-- ⚠️ Handles empty source playlists gracefully
-- 🔁 Detects and adds only missing songs
-- 📋 Supports playlists with over 1000 tracks
-- 🧾 Daily logging inside `logs/YYYY-MM-DD_sync.txt`
-- 🎨 Color-coded terminal output for better clarity
-- 🔢 Summary of added tracks after each sync
-- 🔄 Repeat syncs without restarting the script
-
+- 🔐 **OAuth login** - official TIDAL API
+- 🎧 **Playlist Name Selection** – Choose source and target playlists by name (with track count)
+- ⚠️ **Detection** - Handles empty source playlists gracefully
+- 📋 **Support** - Support playlists with up to over 1000 tracks
+- 🧾 **CSV Logging** - Detailed log of changes with timestamps inside `logs/YYYY-MM-DD_H-M-S_log.csv`
+- 🎨 **CLI** - Color-coded terminal output for better clarity
+- 🔢 **Viusalisation** - Summary of added tracks after each sync
+- 🔄 **Repetition** - Repeat syncs without restarting the script
+- ✅ **Dry-Run Mode** - Preview which tracks would be added/removed without making changes
+- 🔁 **Retry Mechanism** - Automatic retries on TIDAL API failures
+- 🧹 **Mirror Mode** - Optionally remove tracks from target that are missing in source
+- 📄 **HTML Report** - Generates human-readable summary of changes
 ---
 
-## 📦 Requirements
+## 📦 Installation
+
+### Requirements
 
 - Python 3.8+
 - A valid TIDAL account (HiFi or HiFi Plus)
-- `tidalapi`, `colorama` Python packages
+- `tidalapi`, `colorama`, `jinja2` Python packages
 
----
+### Clone this repository:
 
-## 🛠 Installation
-
-1. Clone this repository:
-    ```bash
-    git clone https://github.com/jannme310103/tidalsync.git
-    cd tidalsync
-    ```
-
-2. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3. Run the script:
-    ```bash
-    python tidalsync.py
-    ```
----
-
-## 📁 Logs
-
-Added tracks are saved to:
 ```bash
-logs/YYYY-MM-DD_sync.txt
+git clone https://github.com/jannme310103/tidalsync.git
+cd tidalsync
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## ▶️ Usage
+
+```bash
+python main.py
 ```
 ---
 
-## 💡 Example Usage
+## ✅ Process:
 
-```bash
-=== TIDAL Playlist Synchronizer ===
+1. Log in via OAuth (opens your browser)
+2. Select source and target playlists by number
+3. Enable dry-run and/or mirror mode (optional)
+4. Review the track changes
+5. Sync starts if not in dry-run mode
 
-Logging in...
-Login successful!
+---
 
-Enter the SOURCE playlist ID: abc123...
-Enter the TARGET playlist ID: xyz456...
+## 📁 Logs & Reports
 
-Loaded 248 tracks from source playlist: My Daily Mix
-Loaded 215 tracks from target playlist: Shared Mix
+Every sync generates:
 
-Added 5 new track(s) to 'Shared Mix':
-✓ Artist1 - Song1
-✓ Artist2 - Song2
-...
+- A CSV log in the `logs/` folder
+- An HTML report with a track list (added/removed)
 
-Do you want to sync another playlist? (y/n): n
-Exiting...
-```
+---
+
+## ⚠️ Notes
+
+- This tool modifies playlists. Use dry-run to test before applying.
+- Playlist names must be unique. Duplicates might cause issues.
+
 ---
 
 ## 📝 License
 
 MIT – free to use, modify, and distribute.
+
+---
+
+## 🤝 Contributing
+
+Pull requests and feature ideas are welcome. Potential improvements:
+
+- Multi-source playlist sync
+- Scheduled jobs (e.g., via cron)
+- GUI frontend
