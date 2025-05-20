@@ -22,8 +22,8 @@ Useful for maintaining shared playlists, backups, or updating secondary accounts
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/tidal-playlist-sync.git
-    cd tidal-playlist-sync
+    git clone https://github.com/jannme310103/tidalsync.git
+    cd tidalsync
     ```
 
 2. Install dependencies:
@@ -33,7 +33,7 @@ Useful for maintaining shared playlists, backups, or updating secondary accounts
 
 3. Run the tool:
     ```bash
-    python sync.py
+    python tidalsync.py
     ```
 
 4. When prompted, paste:
