@@ -1,1 +1,2 @@
 tidalapi>=0.7.0
+colorama>=0.4.6
