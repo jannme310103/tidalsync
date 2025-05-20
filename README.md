@@ -5,7 +5,7 @@ Ein kleines, praktisches Python-Tool, das zwei TIDAL-Playlists miteinander vergl
 ## 🚀 Funktionen
 
 - Meldet sich per OAuth einfach bei TIDAL an  
-- Vergleicht zwei Playlists (z. B. von dir und deiner Freundin 😉)  
+- Vergleicht zwei Playlists 
 - Identifiziert Titel, die in einer Playlist fehlen  
 - Fügt diese automatisch in die Ziel-Playlist ein  
 - Unterstützt bis zu 10.000 Titel je Playlist durch intelligentes Offset-Handling
