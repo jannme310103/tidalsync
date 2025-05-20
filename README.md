@@ -1,39 +1,63 @@
-# 🎵 TIDAL Playlist Synchronizer
+# TIDAL Playlist Synchronizer
 
-Ein kleines, praktisches Python-Tool, das zwei TIDAL-Playlists miteinander vergleicht und fehlende Songs automatisch überträgt.
+A Python-based tool to synchronize songs from one TIDAL playlist to another.  
+Useful for maintaining shared playlists, backups, or updating secondary accounts.
 
-## 🚀 Funktionen
+## 🔧 Features
 
-- Meldet sich per OAuth einfach bei TIDAL an  
-- Vergleicht zwei Playlists 
-- Identifiziert Titel, die in einer Playlist fehlen  
-- Fügt diese automatisch in die Ziel-Playlist ein  
-- Unterstützt bis zu 10.000 Titel je Playlist durch intelligentes Offset-Handling
+- Authenticates with your TIDAL account using OAuth
+- Prompts for a source and a target playlist ID
+- Compares the playlists and identifies missing tracks
+- Automatically adds missing songs from source to target
+- Handles playlists with over 1000 tracks by using pagination
 
-## 🛠️ Voraussetzungen
+## 🚀 Getting Started
 
-- Python 3.7+
-- [tidalapi](https://pypi.org/project/tidalapi/)
+### Prerequisites
 
-```bash
-pip install tidalapi
-```
+- Python 3.8+
+- A TIDAL account (HiFi or HiFi Plus for API access)
 
-## ⚙️ Nutzung
+### Installation
 
-1. Starte das Skript
-2. Folge den Anweisungen im Terminal zur Anmeldung.
-3. Das Tool synchronisiert automatisch die fehlenden Titel in die Ziel-Playlist.
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/tidal-playlist-sync.git
+    cd tidal-playlist-sync
+    ```
 
-## 📂 Aufbau
+2. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-| Funktion              | Beschreibung                                                    |
-|-----------------------|------------------------------------------------------------------|
-| `authenticate()`      | OAuth-Anmeldung bei TIDAL                                        |
-| `get_track_ids()`     | Lädt alle Songs beider Playlists                                 |
-| `compare_playlists()` | Ermittelt Unterschiede zwischen beiden Playlists                 |
-| `add_to_playlist()`   | Fügt fehlende Titel in die zweite Playlist ein                  |
+3. Run the tool:
+    ```bash
+    python sync.py
+    ```
 
-## 📝 Hinweis
+4. When prompted, paste:
+    - The **source playlist ID** (songs will be copied from here)
+    - The **target playlist ID** (songs will be added here)
 
-Das Tool überschreibt **keine Songs** und löscht nichts – es fügt lediglich neue Songs hinzu, die in der Ziel-Playlist fehlen.
+## 🧪 Example
+
+Welcome to the Playlist Synchronizer
+
+Logging in:
+Login successful
+
+Enter the source playlist ID: 1234abcd...
+Enter the target playlist ID: 5678efgh...
+
+Loaded 248 songs from source playlist: My Daily Mix
+Loaded 215 songs from target playlist: Shared Mix
+
+Successfully added the following tracks:
+Artist1 - Song1
+Artist2 - Song2
+
+
+## 📝 License
+
+MIT – use it freely, modify it, and share it!
