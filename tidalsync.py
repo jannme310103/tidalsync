@@ -88,4 +88,5 @@ def add_to_playlist(differend_ids, count_ids, differend_songs, playlist_nati):
             print(differend_song)
 
 
-welcome()
+if __name__ == "__main__":
+    welcome()
