@@ -1,51 +1,61 @@
 import tidalapi
+import datetime
+
 
 def welcome():
-    print("Welcome to the Playlist Synchronizer\n")
+    print("\n=== TIDAL Playlist Synchronizer ===\n")
     authenticate()
 
+
 def authenticate():
-    print("Logging in:")
+    print("Logging in...")
     session = tidalapi.Session()
     session.login_oauth_simple()
 
     if session.check_login():
-        print("\nLogin successful\n")
-        prompt_playlist_ids(session)
+        print("Login successful!\n")
+        while True:
+            prompt_playlist_ids(session)
+            choice = input("\nDo you want to sync another playlist? (y/n): ").lower()
+            if choice != 'y':
+                print("Exiting...")
+                break
     else:
-        print("Login failed")
-        print("Please try logging in again\n")
+        print("Login failed. Please try again.\n")
         authenticate()
 
-def prompt_playlist_ids(session):
-    source_playlist_id = input("Enter the src playlist ID: ").strip()
-    target_playlist_id = input("Enter the trg playlist ID: ").strip()
 
+def prompt_playlist_ids(session):
+    source_playlist_id = input("Enter the SOURCE playlist ID: ").strip()
+    target_playlist_id = input("Enter the TARGET playlist ID: ").strip()
     sync_playlists(session, source_playlist_id, target_playlist_id)
 
+
 def sync_playlists(session, source_id, target_id):
-    source_playlist = session.playlist(source_id)
-    target_playlist = session.playlist(target_id)
+    try:
+        source_playlist = session.playlist(source_id)
+        target_playlist = session.playlist(target_id)
+    except Exception as e:
+        print(f"Error loading playlists: {e}")
+        return
 
     source_count = source_playlist.num_tracks
     target_count = target_playlist.num_tracks
 
-    source_start = max(0, source_count - 1000)
-    target_start = max(0, target_count - 1000)
+    source_tracks = get_all_tracks(source_playlist, source_count)
+    target_tracks = get_all_tracks(target_playlist, target_count)
 
-    source_tracks = source_playlist.tracks(offset=source_start, limit=1000)
-    target_tracks = target_playlist.tracks(offset=target_start, limit=1000)
+    print(f"Loaded {source_count} tracks from source playlist: {source_playlist.name}")
+    print(f"Loaded {target_count} tracks from target playlist: {target_playlist.name}\n")
 
-    source_missing = source_playlist.tracks(offset=0, limit=source_start)
-    target_missing = target_playlist.tracks(offset=0, limit=target_start)
+    compare_playlists(source_tracks, target_tracks, target_playlist)
 
-    all_source_tracks = source_tracks + source_missing
-    all_target_tracks = target_tracks + target_missing
 
-    print(f"Loaded {source_count} tracks from src playlist: {source_playlist.name}")
-    print(f"Loaded {target_count} tracks from trg playlist: {target_playlist.name}\n")
+def get_all_tracks(playlist, total_count):
+    recent = playlist.tracks(offset=max(0, total_count - 1000), limit=1000)
+    older = playlist.tracks(offset=0, limit=max(0, total_count - 1000))
+    return recent + older
 
-    compare_playlists(all_source_tracks, all_target_tracks, target_playlist)
 
 def compare_playlists(source_tracks, target_tracks, target_playlist):
     source_ids = [track.id for track in source_tracks]
@@ -61,14 +71,24 @@ def compare_playlists(source_tracks, target_tracks, target_playlist):
 
     add_to_playlist(missing_ids, missing_songs, target_playlist)
 
+
 def add_to_playlist(track_ids, songs, target_playlist):
     if not track_ids:
-        print("No new tracks to add.\n")
+        print("\nNo new tracks to add.\n")
     else:
         target_playlist.add(track_ids)
-        print("Successfully added the following tracks:\n")
+        print("\nSuccessfully added the following tracks:\n")
         for song in songs:
             print(song)
+        log_sync(target_playlist.name, songs)
+
+
+def log_sync(playlist_name, songs):
+    with open("sync_log.txt", "a", encoding="utf-8") as log:
+        log.write(f"\n[{datetime.datetime.now()}] Synced to playlist: {playlist_name}\n")
+        for song in songs:
+            log.write(f"- {song}\n")
+
 
 if __name__ == "__main__":
     welcome()
