@@ -10,7 +10,7 @@ from jinja2 import Template
 init(autoreset=True)
 
 def welcome():
-    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer v1.2.0 ===\n")
+    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer ===\n")
     authenticate()
 
 def authenticate():
@@ -19,24 +19,45 @@ def authenticate():
     session.login_oauth_simple()
     if session.check_login():
         print(Fore.GREEN + "Login successful!\n")
-        while True:
-            run_sync(session)
-            choice = input("\nDo you want to sync another playlist? (y/n): ").lower()
-            if choice != 'y':
-                print("Exiting...")
-                break
+        run_sync(session)
     else:
         print(Fore.RED + "Login failed. Please try again.\n")
         authenticate()
 
 def run_sync(session):
-    source_playlist = select_playlist_by_name(session, "SOURCE")
-    target_playlist = select_playlist_by_name(session, "TARGET")
+    while True:
+        print("\nWhat do you want to do?")
+        print("1. Sync playlists")
+        print("2. Undo last sync")
+        print("3. Exit")
 
-    dry_run = input("Enable Dry-Run mode? (y/n): ").strip().lower() == 'y'
-    mirror_mode = input("Enable Mirror Mode (remove missing songs)? (y/n): ").strip().lower() == 'y'
+        choice = input("Enter your choice (1/2/3): ").strip()
 
-    sync_playlists(session, source_playlist, target_playlist, dry_run, mirror_mode)
+        if choice == '1':
+            source_playlist = select_playlist_by_name(session, "SOURCE")
+            target_playlist = select_playlist_by_name(session, "TARGET")
+
+            dry_run = input("Enable Dry-Run mode? (y/n): ").strip().lower() == 'y'
+            mirror_mode = input("Enable Mirror Mode (remove missing songs)? (y/n): ").strip().lower() == 'y'
+
+            try:
+                sync_playlists(session, source_playlist, target_playlist, dry_run, mirror_mode)
+            except Exception as e:
+                print(Fore.RED + f"\nError during sync: {e}")
+                print(Fore.YELLOW + "Running Auto-Dry-Run for diagnostics...\n")
+                sync_playlists(session, source_playlist, target_playlist, dry_run=True, mirror_mode=mirror_mode)
+
+        elif choice == '2':
+            try:
+                undo_last_sync(session)
+            except Exception as e:
+                print(Fore.RED + f"Undo failed: {e}")
+
+        elif choice == '3':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please select 1, 2 or 3.")
 
 def select_playlist_by_name(session, label):
     user_playlists = retry_request(lambda: session.user.playlists())
@@ -132,6 +153,57 @@ def create_report(playlist_name, added, removed, dry_run):
             removed=removed,
             dry_run=dry_run
         ))
+
+def undo_last_sync(session):
+    from csv import DictReader
+
+    print(Fore.YELLOW + "\nAttempting to undo last sync...")
+
+    log_dir = "logs"
+    files = [f for f in os.listdir(log_dir) if f.endswith("_log.csv")]
+    if not files:
+        raise Exception("No log files found.")
+
+    latest_log = max(files, key=lambda f: os.path.getmtime(os.path.join(log_dir, f)))
+    path = os.path.join(log_dir, latest_log)
+
+    with open(path, "r", encoding="utf-8") as file:
+        reader = list(DictReader(file))
+        if not reader:
+            raise Exception("Log file is empty.")
+        if reader[0]["DryRun"].lower() == "true":
+            raise Exception("Last sync was a dry-run. Nothing to undo.")
+
+        playlist_name = reader[0]["Playlist"]
+        print(f"Restoring playlist: {playlist_name} from log: {latest_log}")
+
+        user_playlists = retry_request(lambda: session.user.playlists())
+        target_playlist = next((pl for pl in user_playlists if pl.name == playlist_name), None)
+        if not target_playlist:
+            raise Exception(f"Playlist '{playlist_name}' not found.")
+
+        to_remove = [row["Track"] for row in reader if row["Action"] == "added"]
+        to_add = [row["Track"] for row in reader if row["Action"] == "removed"]
+
+        # Mapping by track name (best-effort, could be refined)
+        all_tracks = []
+        for pl in user_playlists:
+            all_tracks.extend(get_all_tracks(pl))
+
+        name_to_track = {f"{t.name} - {t.artist.name}": t for t in all_tracks}
+
+        remove_ids = [name_to_track[t].id for t in to_remove if t in name_to_track]
+        add_ids = [name_to_track[t].id for t in to_add if t in name_to_track]
+
+        if remove_ids:
+            print(Fore.MAGENTA + f"Removing {len(remove_ids)} previously added tracks...")
+            retry_request(lambda: target_playlist.remove(remove_ids))
+
+        if add_ids:
+            print(Fore.GREEN + f"Restoring {len(add_ids)} previously removed tracks...")
+            retry_request(lambda: target_playlist.add(add_ids))
+
+        print(Fore.GREEN + "Undo completed.\n")
 
 if __name__ == "__main__":
     welcome()
