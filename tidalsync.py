@@ -1,30 +1,24 @@
 import tidalapi
 import datetime
 import os
-import re
 import time
-from colorama import init, Fore, Style
+from colorama import init, Fore
 from typing import List
 from jinja2 import Template
 
 init(autoreset=True)
 
-def welcome():
-    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer ===\n")
-    authenticate()
-
-def authenticate():
-    print("Logging in...")
+def authenticate_custom(label=""):
+    print(Fore.CYAN + f"\nLogin for {label} Playlist:")
     session = tidalapi.Session()
     session.login_oauth_simple()
     if session.check_login():
-        print(Fore.GREEN + "Login successful!\n")
-        run_sync(session)
+        print(Fore.GREEN + f"{label} login successful!\n")
+        return session
     else:
-        print(Fore.RED + "Login failed. Please try again.\n")
-        authenticate()
+        raise Exception(f"{label} login failed.")
 
-def run_sync(session):
+def run_sync(default_session):
     while True:
         print("\nWhat do you want to do?")
         print("1. Sync playlists")
@@ -34,22 +28,26 @@ def run_sync(session):
         choice = input("Enter your choice (1/2/3): ").strip()
 
         if choice == '1':
-            source_playlist = select_playlist_by_name(session, "SOURCE")
-            target_playlist = select_playlist_by_name(session, "TARGET")
+            use_dual_login = input("Use two different TIDAL accounts? (y/n): ").strip().lower() == 'y'
+            source_session = authenticate_custom("SOURCE") if use_dual_login else default_session
+            target_session = authenticate_custom("TARGET") if use_dual_login else default_session
+
+            source_playlist = select_playlist_by_name(source_session, "SOURCE")
+            target_playlist = select_playlist_by_name(target_session, "TARGET")
 
             dry_run = input("Enable Dry-Run mode? (y/n): ").strip().lower() == 'y'
             mirror_mode = input("Enable Mirror Mode (remove missing songs)? (y/n): ").strip().lower() == 'y'
 
             try:
-                sync_playlists(session, source_playlist, target_playlist, dry_run, mirror_mode)
+                sync_playlists(source_session, target_session, source_playlist, target_playlist, dry_run, mirror_mode)
             except Exception as e:
                 print(Fore.RED + f"\nError during sync: {e}")
                 print(Fore.YELLOW + "Running Auto-Dry-Run for diagnostics...\n")
-                sync_playlists(session, source_playlist, target_playlist, dry_run=True, mirror_mode=mirror_mode)
+                sync_playlists(source_session, target_session, source_playlist, target_playlist, dry_run=True, mirror_mode=mirror_mode)
 
         elif choice == '2':
             try:
-                undo_last_sync(session)
+                undo_last_sync(default_session)
             except Exception as e:
                 print(Fore.RED + f"Undo failed: {e}")
 
@@ -64,7 +62,6 @@ def select_playlist_by_name(session, label):
     print(f"\nAvailable Playlists for {label}:")
     for idx, pl in enumerate(user_playlists):
         print(f"{idx + 1}. {pl.name} ({pl.num_tracks} Tracks)")
-
     choice = int(input(f"\nSelect {label} playlist by number: ")) - 1
     return user_playlists[choice]
 
@@ -77,7 +74,7 @@ def retry_request(func, retries=3, delay=2):
             time.sleep(delay)
     raise Exception("Maximum retries reached.")
 
-def sync_playlists(session, source_playlist, target_playlist, dry_run=False, mirror_mode=False):
+def sync_playlists(source_session, target_session, source_playlist, target_playlist, dry_run=False, mirror_mode=False):
     source_tracks = get_all_tracks(source_playlist)
     target_tracks = get_all_tracks(target_playlist)
 
@@ -94,7 +91,7 @@ def sync_playlists(session, source_playlist, target_playlist, dry_run=False, mir
     print(Fore.MAGENTA + f"Tracks to REMOVE: {len(to_remove)}" if mirror_mode else "")
 
     if to_add:
-        print(Fore.GREEN + "\nFolgende Songs werden hinzugefügt:")
+        print(Fore.GREEN + "\nTracks to be added:")
         for t in to_add:
             print(f"- {t.name} - {t.artist.name}")
 
@@ -123,7 +120,6 @@ def log_sync(playlist_name, added, removed, dry_run):
     os.makedirs("logs", exist_ok=True)
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     filename = f"logs/{timestamp}_log.csv"
-
     with open(filename, "w", encoding="utf-8") as log:
         log.write("Timestamp,Playlist,Track,Artist,Action,DryRun\n")
         for track in added:
@@ -135,7 +131,6 @@ def create_report(playlist_name, added, removed, dry_run):
     os.makedirs("logs", exist_ok=True)
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     filename = f"logs/{timestamp}_report.html"
-
     html_template = """<html><head><title>Sync Report</title></head><body>
     <h2>Playlist Sync Report - {{ playlist_name }}</h2>
     <p><strong>Dry Run:</strong> {{ dry_run }}</p>
@@ -144,7 +139,6 @@ def create_report(playlist_name, added, removed, dry_run):
     <h3>Removed Tracks ({{ removed | length }})</h3>
     <ul>{% for t in removed %}<li>{{ t.name }} - {{ t.artist.name }}</li>{% endfor %}</ul>
     </body></html>"""
-
     template = Template(html_template)
     with open(filename, "w", encoding="utf-8") as f:
         f.write(template.render(
@@ -185,13 +179,11 @@ def undo_last_sync(session):
         to_remove = [row["Track"] for row in reader if row["Action"] == "added"]
         to_add = [row["Track"] for row in reader if row["Action"] == "removed"]
 
-        # Mapping by track name (best-effort, could be refined)
         all_tracks = []
         for pl in user_playlists:
             all_tracks.extend(get_all_tracks(pl))
 
         name_to_track = {f"{t.name} - {t.artist.name}": t for t in all_tracks}
-
         remove_ids = [name_to_track[t].id for t in to_remove if t in name_to_track]
         add_ids = [name_to_track[t].id for t in to_add if t in name_to_track]
 
@@ -206,4 +198,5 @@ def undo_last_sync(session):
         print(Fore.GREEN + "Undo completed.\n")
 
 if __name__ == "__main__":
-    welcome()
+    print(Fore.CYAN + "\n=== TIDAL Playlist Synchronizer v1.3.0 ===\n")
+    run_sync(None)
