@@ -6,18 +6,19 @@ A command-line tool written in Python that lets you synchronize songs from one T
 
 ## 🚀 Features
 
-- 🔐 **OAuth login** - official TIDAL API
-- 🎧 **Playlist Name Selection** – Choose source and target playlists by name (with track count)
-- ⚠️ **Detection** - Handles empty source playlists gracefully
-- 📋 **Support** - Support playlists with up to over 1000 tracks
-- 🧾 **CSV Logging** - Detailed log of changes with timestamps inside `logs/YYYY-MM-DD_H-M-S_log.csv`
-- 🎨 **CLI** - Color-coded terminal output for better clarity
-- 🔢 **Viusalisation** - Summary of added tracks after each sync
-- 🔄 **Repetition** - Repeat syncs without restarting the script
-- ✅ **Dry-Run Mode** - Preview which tracks would be added/removed without making changes
-- 🔁 **Retry Mechanism** - Automatic retries on TIDAL API failures
-- 🧹 **Mirror Mode** - Optionally remove tracks from target that are missing in source
-- 📄 **HTML Report** - Generates human-readable summary of changes
+- 🔐 **OAuth Login** – Official TIDAL API
+- 🎧 **Playlist Selection by Name** – Choose source and target by name (track count shown)
+- 🔄 **Sync with Optional Mirror Mode** – Keep your target playlist in sync with the source
+- ✅ **Dry-Run Mode** – Preview changes before they happen
+- 🧹 **Mirror Mode** – Optionally remove songs from target that are missing in source
+- 🧾 **CSV Logging** – Sync actions logged in `logs/` as timestamped CSV
+- 📄 **HTML Report** – Generates a readable sync report
+- ♻️ **Undo Mode** – Revert the most recent real (non-dry-run) sync based on logs
+- 🧠 **Auto-Dry-Run on Error** – Shows a diagnostic dry-run if syncing fails
+- 💡 **Interactive Main Menu** – Select actions: Sync / Undo / Exit
+- 🎨 **Colorful CLI** – Terminal output with color for better clarity
+- 🔁 **Retry Mechanism** – Handles API hiccups automatically
+- 🧠 **Handles large playlists** – Supports syncing with more then 1000 tracks
 ---
 
 ## 📦 Installation
@@ -44,7 +45,7 @@ pip install -r requirements.txt
 ## ▶️ Usage
 
 ```bash
-python main.py
+python tidalsync.py
 ```
 ---
 
