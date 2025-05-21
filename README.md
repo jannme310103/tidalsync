@@ -7,6 +7,7 @@ A command-line tool written in Python that lets you synchronize songs from one T
 ## 🚀 Features
 
 - 🔐 **OAuth Login** – Official TIDAL API
+- 🔁 **Two Account Login** - Synchronization between two different TIDAL accounts possible
 - 🎧 **Playlist Selection by Name** – Choose source and target by name (track count shown)
 - 🔄 **Sync with Optional Mirror Mode** – Keep your target playlist in sync with the source
 - ✅ **Dry-Run Mode** – Preview changes before they happen
