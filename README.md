@@ -78,7 +78,7 @@ Every sync generates:
 
 ## 📝 License
 
-MIT – free to use, modify, and distribute.
+GNU - free to use, study, change and distribute
 
 ---
 
