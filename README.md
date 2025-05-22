@@ -84,9 +84,12 @@ tidalsync  © 2025 by jannme310103 is licensed under CC BY-NC-SA 4.0. To view a 
 
 ---
 
+## 👀 Upcoming innovations
+
+- GUI frontend (in progress)
+
+---
+
 ## 🤝 Contributing
 
-Pull requests and feature ideas are welcome. Potential improvements:
-
-- Scheduled jobs (e.g., via cron)
-- GUI frontend
+Pull requests and feature ideas are welcome.
