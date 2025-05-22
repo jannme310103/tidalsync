@@ -86,6 +86,5 @@ GNU - free to use, study, change and distribute
 
 Pull requests and feature ideas are welcome. Potential improvements:
 
-- Multi-source playlist sync
 - Scheduled jobs (e.g., via cron)
 - GUI frontend
