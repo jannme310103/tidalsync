@@ -78,7 +78,7 @@ Every sync generates:
 
 ## 📝 License
 
-GNU - free to use, study, change and distribute
+CC BY-NC-SA 4.0
 
 ---
 
