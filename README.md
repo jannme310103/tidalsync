@@ -79,7 +79,7 @@ Every sync generates:
 ## 📝 License
 
 
-tidalsync  © 2025 by jannme310103 is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+This project is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
 
 ---
