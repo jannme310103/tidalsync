@@ -83,7 +83,7 @@ Every sync generates:
 - **Code:** [MIT License](./LICENSE)
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-- **Generierte Inhalte (z. B. HTML-Berichte):** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+- **Generated content (e.g. HTML reports):** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 ![License: CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png)
 
